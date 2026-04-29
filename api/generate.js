@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") {
-      return res.status(405).json({ error: "只支援 POST 請求" });
+      return res.status(405).json({ error: "POST method only." });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -9,7 +9,7 @@ export default async function handler(req, res) {
 
     if (!apiKey) {
       return res.status(500).json({
-        error: "尚未設定 GEMINI_API_KEY。請到 Vercel Environment Variables 新增金鑰後重新部署。",
+        error: "Missing GEMINI_API_KEY. Please add it in Vercel Environment Variables and redeploy.",
       });
     }
 
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     const d = [formData.d1, formData.d2, formData.d3].filter(Boolean).join("、");
 
     const systemPrompt =
-      "你是一位溫暖、富有洞見且擅長敘事的愛情建築師。請協助使用者將關於愛情的零碎想法，整合成一篇完整、有條理且充滿力量的我的愛情藍圖宣言。不要提到 AI 或技術術語。";
+      "You are a warm, insightful, narrative-oriented relationship architect. Your task is to help the user integrate scattered thoughts about love into a coherent and meaningful personal love blueprint declaration. Do not mention AI or technical terms.";
 
     const userPrompt = `
 請根據以下資料，撰寫一篇約 500 字的「愛情藍圖宣言」。
@@ -40,12 +40,7 @@ ${formData.vision || ""}
 鋼筋（經營能力）：${d}
 
 請寫成溫柔堅定、充滿希望、具有啟發性的散文。
-請包含：
-1. 愛情初衷
-2. 幸福願景畫面
-3. 地基、支柱、鋼筋的意義
-4. 溫暖結語
-
+請包含：愛情初衷、幸福願景畫面、地基支柱鋼筋的意義，以及溫暖結語。
 不要列點，不要使用 Markdown 標題。
 `.trim();
 
@@ -80,7 +75,7 @@ ${formData.vision || ""}
       data = JSON.parse(rawText);
     } catch {
       return res.status(500).json({
-        error: `Gemini 回傳格式不是 JSON：${rawText.slice(0, 300)}`,
+        error: `Gemini returned non-JSON response: ${rawText.slice(0, 300)}`,
       });
     }
 
@@ -88,7 +83,7 @@ ${formData.vision || ""}
       return res.status(geminiResponse.status).json({
         error:
           data?.error?.message ||
-          "Gemini API 請求失敗，請檢查 GEMINI_API_KEY 或 GEMINI_MODEL。",
+          "Gemini API request failed. Please check GEMINI_API_KEY or GEMINI_MODEL.",
       });
     }
 
@@ -100,14 +95,14 @@ ${formData.vision || ""}
 
     if (!text) {
       return res.status(500).json({
-        error: "Gemini 回傳內容為空，請稍後再試。",
+        error: "Gemini returned empty content. Please try again.",
       });
     }
 
     return res.status(200).json({ text });
   } catch (error) {
     return res.status(500).json({
-      error: error?.message || "伺服器發生錯誤，請稍後再試。",
+      error: error?.message || "Server error. Please try again.",
     });
   }
 }
