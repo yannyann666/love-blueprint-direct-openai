@@ -57,19 +57,84 @@ const App = () => {
   };
 
   const downloadImage = async () => {
-    if (!blueprintRef.current) return;
+    if (!blueprintRef.current || !window.html2canvas) {
+      alert("圖片工具尚未載入完成，請稍後再試一次。");
+      return;
+    }
 
-    const canvas = await html2canvas(blueprintRef.current, {
-      backgroundColor: '#fdfbf7',
-      scale: 3,
-      useCORS: true,
-      logging: false,
-    });
+    try {
+      const canvas = await window.html2canvas(blueprintRef.current, {
+        backgroundColor: "#fdfbf7",
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        windowWidth: document.documentElement.scrollWidth,
+        windowHeight: document.documentElement.scrollHeight,
+      });
 
-    const link = document.createElement('a');
-    link.download = `愛情藍圖宣言-${new Date().toLocaleDateString('zh-TW').replaceAll('/', '-')}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+      const dateText = new Date()
+        .toLocaleDateString("zh-TW")
+        .replace(/\//g, "-");
+
+      const fileName = "愛情藍圖宣言-" + dateText + ".png";
+
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          alert("圖片產生失敗，請再試一次。");
+          return;
+        }
+
+        const file = new File([blob], fileName, { type: "image/png" });
+
+        if (
+          navigator.canShare &&
+          navigator.canShare({ files: [file] }) &&
+          navigator.share
+        ) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: "我的愛情藍圖宣言",
+              text: "這是我的愛情藍圖宣言。",
+            });
+            return;
+          } catch (shareError) {
+            console.log("使用者取消分享或分享失敗，改用備用方式。");
+          }
+        }
+
+        const url = URL.createObjectURL(blob);
+
+        const isIOS =
+          /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+          (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+        if (isIOS) {
+          const newWindow = window.open(url, "_blank");
+
+          if (!newWindow) {
+            alert("請允許彈出視窗，或長按圖片選擇儲存到照片。");
+          }
+
+          setTimeout(() => URL.revokeObjectURL(url), 60000);
+          return;
+        }
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      }, "image/png");
+    } catch (error) {
+      console.error("圖片下載失敗：", error);
+      alert("圖片下載失敗，請截圖保存，或稍後再試。");
+    }
   };
 
   const copyToClipboard = async () => {
