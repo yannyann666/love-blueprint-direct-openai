@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
-import html2canvas from 'html2canvas';
-import { Loader2, Sparkles, CheckCircle2, AlertCircle, X, Copy, Download, Heart, PenTool, Construction, Shield } from 'lucide-react';
 import html2canvas from "html2canvas";
+import { Loader2, Sparkles, CheckCircle2, AlertCircle, X, Copy, Download, Heart, PenTool, Construction, Shield } from 'lucide-react';
 
 const App = () => {
   const [loading, setLoading] = useState(false);
@@ -105,7 +104,6 @@ const App = () => {
 
       const exportWidth = clone.scrollWidth || 1080;
       const exportHeight = clone.scrollHeight || clone.offsetHeight;
-
       const canvas = await html2canvas(clone, {
         backgroundColor: "#fdfbf7",
         scale: 2,
